@@ -4,6 +4,7 @@
   "description": "A sample of REST API using Nodejs.",
   "main": "index.js",
   "scripts": {
+    "start": "node --max-old-space-size=1024 ./src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
