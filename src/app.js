@@ -11,6 +11,13 @@ const packageJson = require('../package.json')
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+// CORS: Enable Cross Origin
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
+
 logger.info('====== NODEJS REST API ======');
 console.log('====== NODEJS REST API ======');
 let START_TIME = new Date();
@@ -22,7 +29,7 @@ app.get('/', (req, res) => {
 
 // GET -> return json format
 app.get('/health', (req, res) => {
-    logger.debug('Access /health')
+    logger.debug('GET' + req.url);
 
     let health = {
         status: 'Up',
@@ -35,12 +42,44 @@ app.get('/health', (req, res) => {
     res.send(JSON.stringify(health, null, '\t'))
 })
 
+// GET user by query string
+// Query string like: /users?id=<id>&name=<name>
+app.get('/users', (req, res) => {
+    logger.debug('GET' + req.url);
+
+    let query = req.query;
+    let id = '';
+    let name = '';
+    if (Object.keys(query).length === 0 && query.constructor === Object) {
+        console.log('Query string is empty');
+    } else {
+        id = req.query.id;
+        name = req.query.name;
+    }
+
+    try {
+        let json = {
+            id: id,
+            name: name,
+        }
+        res.setHeader('Content-Type', 'application/json');
+        res.status(200)
+        res.send(JSON.stringify(json, null, '\t'))
+    } catch (error) {
+        logger.error('Get user failed, ' + error)
+        let json = {
+            code: 500,
+            message: 'Server error'
+        }
+        res.setHeader('Content-Type', 'application/json');
+        res.status(500)
+        res.send(JSON.stringify(json, null, '\t'))
+    }
+});
+
 // POST with request body
-app.post('/users/add', (req, res) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'POST')
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    res.setHeader('Content-Type', 'application/json');
+app.post('/users', (req, res) => {
+    logger.debug('POST' + req.url);
 
     let username = '';
     let fullname = '';
@@ -54,6 +93,7 @@ app.post('/users/add', (req, res) => {
             code: 0,
             message: 'Success'
         }
+        res.setHeader('Content-Type', 'application/json');
         res.status(200)
         res.send(JSON.stringify(json, null, '\t'))
     } catch (error) {
@@ -62,6 +102,7 @@ app.post('/users/add', (req, res) => {
             code: 500,
             message: 'Server error'
         }
+        res.setHeader('Content-Type', 'application/json');
         res.status(500)
         res.send(JSON.stringify(json, null, '\t'))
     }
